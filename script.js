@@ -1,17 +1,5 @@
-const changelog = [
-    {
-        version: "0.0.1",
-        date: "28.04.2026",
-        isNew: true,
-        changes: {
-            added: ["Dodano opcje ręcznego oraz urposzczonego podpisu", "Dodano dziennik zmian", "Dodano przycisk od wczytania ostatniego swojego podpisu",],
-            fixed: ["Brak"],
-            changed: ["Poprawiono lekko style przycisków"]
-        }
-    }
-];
-const start = new Date("2026-04-26T00:00:00");
-const end = new Date("2026-04-27T20:00:00");
+const start = new Date("2026-05-05T00:00:00");
+const end = new Date("2026-05-10T18:00:00");
 
 const maintenanceDiv = document.getElementById("maintenance");
 const timer = document.getElementById("timer");
