@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <title>Generator raportu</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <div class="container">
+    <h2>🚔 Generator raportu</h2>
+
+    <div id="loadingModal">
+      <div class="loadingBox">
+        <div id="loadingIcon" class="spinner"></div>
+        <div class="loadingText">Generowanie raportu...</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div id="maintenance" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#020617;
+color:white;
+z-index:9999;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+font-size:22px;
+text-align:center;
+">
+        <h1>🚧 Przerwa techniczna. Trwa przebudowa strony!</h1>
+        <h1>Na ten czas proszę o ręczne wypisywanie raportów na kanale discord!</h1>
+        <p>Strona wróci za:</p>
+        <h2 id="timer"></h2>
+      </div>
+      <div id="signatureModal" style="
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.8);
+z-index:10000;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+">
+
+        <div
+          style="background:#111827;padding:20px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:12px;">
+
+          <h3 id="signatureTitle" style="color:white;text-align:center;margin:0;">
+            Proszę się podpisać (Parafka lub Imię i Nazwisko)
+          </h3>
+
+          <div class="sigTabs">
+            <div class="sigTab active" onclick="setSignatureMode('draw', this)">✍️ Własny</div>
+            <div class="sigTab" onclick="setSignatureMode('text', this)">🔤 Uproszczony</div>
+          </div>
+
+          <canvas id="signatureCanvas" width="400" height="150"
+            style="background:#26324d;border-radius:8px;display:block;">
+          </canvas>
+
+          <div class="sigActions">
+            <button class="clear" onclick="clearSignature()">Wyczyść</button>
+            <button class="save" onclick="saveSignature()">Zapisz</button>
+            <button id="loadSignatureBtn" class="load" onclick="loadSavedSignature()" style="display:none;">
+              Wczytaj ostatni podpis
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+      <input id="nick" placeholder="Nick">
+      <input id="stopien" placeholder="Stopień">
+      <input id="odznaka" placeholder="Nr odznaki" maxlength="5">
+      <input id="radio" placeholder="Radio (DC)">
+      <input id="taser" placeholder="Taser">
+      <input id="powodTaser" placeholder="Powód tasera">
+      <input id="bron" placeholder="Broń palna">
+      <input id="powodBron" placeholder="Powód broni">
+      <input id="kajdanki" placeholder="Kajdanki">
+      <input id="powodKajdanki" placeholder="Powód kajdanek">
+      <input id="partner" placeholder="Partner">
+      <input id="pojazd" placeholder="Pojazd">
+      <input id="godziny" placeholder="Godziny">
+      <input id="zatrzymani" placeholder="Zatrzymani" maxlength="10">
+      <input id="dowod" placeholder="Dowód w postaci ss (TAK/NIE)">
+      <input id="uwagi" placeholder="Uwagi (jeśli nie ma zostaw puste)">
+    </div>
+
+    <div class="buttons">
+      <button class="generate" onclick="startRaport()">Generuj raport</button>
+    </div>
+
+    <canvas id="canvas" style="display: none;"></canvas>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-center">
+      <a href="https://discord.gg/JvZU3XTusK" target="_blank">© <span id="year"></span> Projekt Łódź</a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+
+  <div id="changelogModal" class="modal">
+    <div class="changelogBox">
+
+      <div class="closeBtn" onclick="closeChangelog()">✖</div>
+
+      <div id="versionList" class="versionList"></div>
+
+      <div class="versionContentBox">
+        <h3 id="versionTitle">Wybierz wersję</h3>
+        <div id="versionContent"></div>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+
+  </div>
+
+  <div id="changelogBtn" onclick="openChangelog()">📜 <span id="newDot"></span></div>
+</body>
+
+</html>
