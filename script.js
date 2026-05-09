@@ -1,7 +1,7 @@
 const changelog = [
     {
         version: "0.0.1",
-        date: "28.04.2026",
+        date: "09.05.2026",
         isNew: true,
         changes: {
             added: ["Wydanie strony"],
