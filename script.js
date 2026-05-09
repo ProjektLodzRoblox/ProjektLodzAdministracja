@@ -318,7 +318,8 @@ async function generujCanvas() {
                     ? x + 15
                     : x + (w / 2) + 10;
 
-                const el = document.getElementById(f[1]);
+                const section = document.getElementById(`fields-${selectedMode}`);
+                const el = section.querySelector(`[id="${f[1]}"]`);
 
                 let value = "-";
 
