@@ -1,8 +1,91 @@
-const start = new Date("2026-05-05T00:00:00");
-const end = new Date("2026-05-10T18:00:00");
+const changelog = [
+    {
+        version: "0.0.1",
+        date: "28.04.2026",
+        isNew: true,
+        changes: {
+            added: ["Dodano opcje ręcznego oraz urposzczonego podpisu", "Dodano dziennik zmian", "Dodano przycisk od wczytania ostatniego swojego podpisu",],
+            fixed: ["Brak"],
+            changed: ["Poprawiono lekko style przycisków"]
+        }
+    }
+];
+
+const reportTemplates = {
+
+    support: {
+        title: "🔨 RAPORT SUPPORT",
+
+        sections: [
+            {
+                title: "SUPPORT",
+                x: 20,
+                y: 110,
+                w: 860,
+
+                fields: [
+                    ["Nick", "nick"],
+                    ["Data", "data-sluzby"],
+                    ["Godzina wyjścia", "godzina-wyjscia"],
+                    ["Godzina wejścia", "godzina-wejscia"],
+                    ["Co robiłeś", "co-robiono"],
+                    ["Zgłoszeni gracze", "ilosc-zgloszonych"],
+                    ["Ticket/VC pomoc", "ilosc-tickety-vc"],
+                    ["Przerwy", "ilosc-przerw"],
+                    ["Numerek", "numerek"],
+                    ["Dowód", "dowod"]
+                ]
+            }
+        ]
+    },
+
+    moderator: {
+        title: "🛡️ RAPORT ADMINISTRACJI Z PERMISJAMI",
+
+        sections: [
+            {
+                title: "ADMINISTRACJA Z PERMISJAMI",
+                x: 20,
+                y: 110,
+                w: 860,
+
+                fields: [
+                    ["Nick", "nick2"],
+                    ["Godzina wejścia", "wejscie"],
+                    ["Godzina wyjścia", "wyjscie"],
+
+                    ["Data", "data-sluzby"],
+                    ["Numerek", "numerek"],
+
+                    ["Przerwy", "ilosc-przerw"],
+
+                    ["Co robiłeś", "co-robiono"],
+                    ["Ticket/VC pomoc", "ilosc-tickety-vc"],
+
+                    ["Zgłoszeni gracze", "ilosc-zgloszonych"],
+                    ["Bany", "bany"],
+
+                    ["Kicki", "kicki"],
+                    ["Dowód", "dowod"]
+                ]
+            }
+        ]
+    }
+};
+
+let selectedMode = null;
+
+const start = new Date("2026-04-26T00:00:00");
+const end = new Date("2026-04-27T20:00:00");
 
 const maintenanceDiv = document.getElementById("maintenance");
 const timer = document.getElementById("timer");
+
+let startTime = null;
+let elapsed = 0;
+let interval = null;
+let running = false;
+const display = document.getElementById("timeDisplay");
 
 function updateMaintenance() {
     const now = new Date();
@@ -42,6 +125,62 @@ function wrap(text, width) {
     result.push(text);
     return result;
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const select = document.getElementById("trybSelect");
+    const selected = select.querySelector(".select-selected");
+    const options = select.querySelector(".select-options");
+    const optionItems = select.querySelectorAll(".select-option");
+
+    selected.addEventListener("click", () => {
+        options.style.display = options.style.display === "block" ? "none" : "block";
+        selected.classList.toggle("active"); // 👈 TO
+    });
+
+    optionItems.forEach(option => {
+
+        option.addEventListener("click", () => {
+
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = "none";
+
+            selectedMode = option.dataset.value;
+
+            const btn = document.querySelector(".generate");
+            btn.style.display = "block";
+
+            selected.textContent = option.textContent;
+            options.style.display = "none";
+            selected.classList.remove("active");
+
+            document.querySelectorAll(".fields").forEach(f => {
+                f.style.display = "none";
+            });
+
+            if (selectedMode === "support") {
+                document.getElementById("fields-support").style.display = "grid";
+            }
+
+            if (selectedMode === "moderator") {
+                document.getElementById("fields-moderator").style.display = "grid";
+            }
+
+        });
+
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!select.contains(e.target)) {
+            options.style.display = "none";
+            selected.classList.remove("active"); // 👈 reset
+        }
+    });
+
+});
 
 function linia(label, value, width = 42) {
     let lines = wrap(value, width);
@@ -97,14 +236,23 @@ let canvasReady = false;
 
 
 async function generujCanvas() {
+
     return new Promise((resolve) => {
+
+        const template = reportTemplates[selectedMode];
+
+        if (!template) {
+            alert("Nie wybrano trybu raportu");
+            return;
+        }
 
         const canvas = document.getElementById("canvas");
         const ctx = canvas.getContext("2d");
+
         canvas.style.display = "";
 
         const width = 900;
-        const height = 560;
+        const height = 450;
 
         canvas.width = width;
         canvas.height = height;
@@ -117,42 +265,42 @@ async function generujCanvas() {
 
         ctx.fillStyle = "#38bdf8";
         ctx.font = "bold 26px Segoe UI";
-        ctx.fillText("🚔 RAPORT SŁUŻBY", 40, 65);
+        ctx.fillText(template.title, 40, 65);
 
         ctx.fillStyle = "#9ca3af";
         ctx.font = "14px Segoe UI";
-        ctx.fillText(new Date().toLocaleDateString("pl-PL"), width - 150, 65);
+        const data = document.getElementById("data-sluzby")?.value?.trim();
 
-        drawSection("FUNKCJONARIUSZ", 20, 110, 420, [
-            ["Nick", nick.value],
-            ["Stopień", stopien.value],
-            ["Nr odznaki", odznaka.value],
-            ["Partner", partner.value]
-        ]);
+        ctx.fillText(
+            data || new Date().toLocaleDateString("pl-PL"),
+            width - 150,
+            65
+        );
 
-        drawSection("UŻYCIE", 460, 110, 420, [
-            ["Radio", radio.value],
-            ["Taser", taser.value],
-            ["Broń palna", bron.value],
-            ["Kajdanki", kajdanki.value]
-        ]);
+        template.sections.forEach(section => {
 
-        drawSection("SZCZEGÓŁY", 20, 280, 860, [
-            ["Powód tasera", powodTaser.value],
-            ["Powód broni", powodBron.value],
-            ["Powód kajdanek", powodKajdanki.value]
-        ]);
+            drawSection(
+                section.title,
+                section.x,
+                section.y,
+                section.w,
+                section.fields
+            );
 
-        drawSection("PODSUMOWANIE", 20, 400, 860, [
-            ["Godziny", godziny.value],
-            ["Zatrzymani", zatrzymani.value],
-            ["Dowód (w postaci ss)", dowod.value],
-            ["Uwagi", uwagi.value]
-        ]);
+        });
 
         function drawSection(title, x, y, w, fields) {
+
+            const rowH = 25;
+            const headerH = 70;
+            const footerH = signatureData ? 90 : 40;
+
+            const rows = Math.ceil(fields.length / 2);
+
+            const sectionHeight = headerH + (rows * rowH) + footerH;
+
             ctx.fillStyle = "#111827";
-            roundRect(ctx, x, y, w, 140, 10, true);
+            roundRect(ctx, x, y, w, sectionHeight, 10, true);
 
             ctx.fillStyle = "#38bdf8";
             ctx.font = "bold 14px Segoe UI";
@@ -161,30 +309,48 @@ async function generujCanvas() {
             ctx.fillStyle = "#1f2937";
             ctx.fillRect(x + 15, y + 35, w - 30, 1);
 
-            let offsetY = y + 60;
+            fields.forEach((f, index) => {
 
-            fields.forEach(f => {
+                const col = index % 2;
+                const row = Math.floor(index / 2);
+
+                const offsetY = y + 60 + (row * 25);
+
+                const baseX = col === 0
+                    ? x + 15
+                    : x + (w / 2) + 10;
+
+                const el = document.getElementById(f[1]);
+
+                let value = "-";
+
+                if (el && el.value.trim() !== "") {
+                    value = el.value.trim();
+                }
+
                 ctx.fillStyle = "#9ca3af";
                 ctx.font = "12px Segoe UI";
-                ctx.fillText(f[0], x + 15, offsetY);
+                ctx.fillText(f[0], baseX, offsetY);
 
                 ctx.fillStyle = "#e5e7eb";
                 ctx.font = "12px Consolas";
-                ctx.fillText(f[1] || "-", x + 150, offsetY);
+                ctx.fillText(value, baseX + 150, offsetY);
 
-                offsetY += 25;
             });
+
         }
 
         if (signatureData) {
+
             const img = new Image();
 
             img.onload = () => {
+
                 const boxWidth = 200;
                 const boxHeight = 60;
 
                 const x = width - boxWidth - 40;
-                const y = height - boxHeight - 25;
+                const y = height - boxHeight - 40;
 
                 ctx.fillStyle = "#9ca3af";
                 ctx.font = "12px Segoe UI";
@@ -192,86 +358,43 @@ async function generujCanvas() {
                 const text = "Podpisano:";
                 const textWidth = ctx.measureText(text).width;
 
-                ctx.fillText(text, x + (boxWidth - textWidth) / 2, y);
+                ctx.fillText(
+                    text,
+                    x + (boxWidth - textWidth) / 2,
+                    y
+                );
 
                 ctx.strokeStyle = "#9ca3af";
+
                 ctx.beginPath();
                 ctx.moveTo(x, y + 8);
                 ctx.lineTo(x + boxWidth, y + 8);
                 ctx.stroke();
 
-                ctx.drawImage(img, x, y + 12, boxWidth, boxHeight);
-
-                ctx.save();
-
-                const offsetX = (Math.random() * 20) - 10;
-                const offsetY = (Math.random() * 20) - 10;
-                const randomRot = (-0.25 + Math.random() * 0.5);
-
-                const centerX = x - 5 + offsetX;
-                const centerY = y + 15 + offsetY;
-
-                const radius = 45;
-
-                ctx.translate(centerX, centerY);
-                ctx.rotate(randomRot);
-
-                ctx.strokeStyle = "rgba(180,0,0,0.85)";
-                ctx.fillStyle = "rgba(180,0,0,0.85)";
-                ctx.lineWidth = 1.5;
-
-                ctx.beginPath();
-                ctx.arc(0, 0, radius, 0, Math.PI * 2);
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.arc(0, 0, radius - 6, 0, Math.PI * 2);
-                ctx.stroke();
-
-                function textOnArc(text, r, startAngle, spacing = 0.06) {
-                    ctx.save();
-                    ctx.rotate(startAngle - (text.length * spacing) / 2);
-
-                    for (let i = 0; i < text.length; i++) {
-                        ctx.save();
-                        ctx.rotate(i * spacing);
-                        ctx.translate(0, -r);
-                        ctx.fillText(text[i], 0, 0);
-                        ctx.restore();
-                    }
-
-                    ctx.restore();
-                }
-
-                ctx.font = "bold 8px Arial";
-                textOnArc("KOMENDA POWIATOWA POLICJI W ŁODZI", radius - 8, -Math.PI / 2);
-
-                textOnArc("POLICJA", radius - 8, Math.PI / 2);
-
-                ctx.textAlign = "center";
-
-                ctx.font = "bold 11px Arial";
-                ctx.fillText(stopien.value || "STOPIEŃ", 0, -3);
-
-                ctx.font = "10px Arial";
-                ctx.fillText(nick.value || "NICK", 0, 10);
-
-                ctx.font = "9px Arial";
-                ctx.fillText("NR " + (odznaka.value || "00000"), 0, 22);
-
-                ctx.restore();
+                ctx.drawImage(
+                    img,
+                    x,
+                    y + 12,
+                    boxWidth,
+                    boxHeight
+                );
 
                 canvasReady = true;
                 resolve();
+
             };
 
             img.src = signatureData;
 
         } else {
+
             canvasReady = true;
             resolve();
+
         }
+
     });
+
 }
 
 function roundRect(ctx, x, y, w, h, r, fill) {
@@ -545,7 +668,7 @@ function updateLoadButton() {
     const saved = localStorage.getItem("savedSignature");
     const btn = document.getElementById("loadSignatureBtn");
 
-    if (saved) {
+    if (saved && signatureMode === "draw") {
         btn.style.display = "inline-block";
     } else {
         btn.style.display = "none";
@@ -584,10 +707,19 @@ function syncSignatureUI() {
     if (loadBtn) loadBtn.style.display = (saved && isDraw) ? "inline-block" : "none";
 }
 
+function getNick() {
+    if (selectedMode === "moderator") {
+        return document.getElementById("nick2");
+    }
+    return document.getElementById("nick");
+}
+
 function setSignatureMode(mode, el) {
 
+    const nick = getNick();
+
     if (mode === "text" && !nick.value.trim()) {
-        alert("Najpierw proszę o wpisanie swojego nicku.");
+        alert("Najpierw proszę wpisać swój nick.");
         return;
     }
 
@@ -608,13 +740,10 @@ function setSignatureMode(mode, el) {
         sigCanvas.style.opacity = "1";
     }, 150);
 
-    const title = document.getElementById("signatureTitle");
-
-    if (mode === "draw") {
-        title.innerText = "Proszę się podpisać (Parafka lub Imię i Nazwisko)";
-    } else {
-        title.innerText = "Podpis zostanie wygenerowany z Twojego nicku";
-    }
+    document.getElementById("signatureTitle").innerText =
+        mode === "draw"
+            ? "Proszę się podpisać (Parafka lub Imię i Nazwisko)"
+            : "Podpis zostanie wygenerowany z Twojego nicku";
 
     syncSignatureUI();
 }
@@ -622,7 +751,8 @@ function setSignatureMode(mode, el) {
 document.fonts.load("42px Pacifico");
 
 async function generateTextSignature() {
-    const text = document.getElementById("nick").value || "Podpis";
+    const nick = getNick();
+    const text = nick?.value || "Podpis";
 
     await document.fonts.load("42px Pacifico");
 
@@ -630,7 +760,6 @@ async function generateTextSignature() {
 
     sigCtx.fillStyle = "white";
     sigCtx.font = "42px 'Pacifico', cursive";
-
     sigCtx.textAlign = "center";
     sigCtx.textBaseline = "middle";
 
@@ -638,6 +767,12 @@ async function generateTextSignature() {
 }
 
 document.getElementById("nick").addEventListener("input", () => {
+    if (signatureMode === "text") {
+        generateTextSignature();
+    }
+});
+
+document.getElementById("nick2").addEventListener("input", () => {
     if (signatureMode === "text") {
         generateTextSignature();
     }
@@ -710,8 +845,8 @@ function startScene() {
     document.body.appendChild(scene);
 
     // ===== TOP TEXT =====
-    const top=document.createElement("div");
-    top.style=`
+    const top = document.createElement("div");
+    top.style = `
         position:fixed;
         top:20px;
         left:50%;
@@ -723,16 +858,16 @@ function startScene() {
     `;
     document.body.appendChild(top);
 
-    function say(t,time=3500){
-        top.innerText=t;
-        top.style.opacity="1";
+    function say(t, time = 3500) {
+        top.innerText = t;
+        top.style.opacity = "1";
         clearTimeout(top._t);
-        top._t=setTimeout(()=>top.style.opacity="0",time);
+        top._t = setTimeout(() => top.style.opacity = "0", time);
     }
 
     // ===== DIALOG QUEUE (NAPRAWIA BUG ZNIKANIEM) =====
-    const dialog=document.createElement("div");
-    dialog.style=`
+    const dialog = document.createElement("div");
+    dialog.style = `
         position:fixed;
         bottom:60px;
         left:50%;
@@ -749,37 +884,37 @@ function startScene() {
     `;
     document.body.appendChild(dialog);
 
-    const queue=[];
-    let talking=false;
+    const queue = [];
+    let talking = false;
 
-    function talk(t){
+    function talk(t) {
         queue.push(t);
-        if(!talking) nextTalk();
+        if (!talking) nextTalk();
     }
 
-    function nextTalk(){
-        if(queue.length===0){
-            talking=false;
-            dialog.style.opacity="0";
+    function nextTalk() {
+        if (queue.length === 0) {
+            talking = false;
+            dialog.style.opacity = "0";
             return;
         }
 
-        talking=true;
-        const t=queue.shift();
+        talking = true;
+        const t = queue.shift();
 
-        dialog.innerText=t;
-        dialog.style.opacity="1";
+        dialog.innerText = t;
+        dialog.style.opacity = "1";
 
-        setTimeout(()=>{
-            dialog.style.opacity="0";
-            setTimeout(nextTalk,300);
-        },2200);
+        setTimeout(() => {
+            dialog.style.opacity = "0";
+            setTimeout(nextTalk, 300);
+        }, 2200);
     }
 
     // ===== HP =====
-    function hp(name,side,color){
-        const w=document.createElement("div");
-        w.style=`
+    function hp(name, side, color) {
+        const w = document.createElement("div");
+        w.style = `
             position:fixed;
             top:20px;
             ${side}:20px;
@@ -788,7 +923,7 @@ function startScene() {
             font-size:12px;
         `;
 
-        w.innerHTML=`
+        w.innerHTML = `
             <div>${name}</div>
             <div style="width:100%;height:10px;background:#222;border:1px solid white;">
                 <div class="bar" style="width:100%;height:100%;background:${color};transition:0.2s;"></div>
@@ -799,16 +934,16 @@ function startScene() {
         return w.querySelector(".bar");
     }
 
-    const hp1=hp("MARHUB","left","#7ec8ff");
-    const hp2=hp("MATIX","right","#ff6b6b");
+    const hp1 = hp("MARHUB", "left", "#7ec8ff");
+    const hp2 = hp("MATIX", "right", "#ff6b6b");
 
-    let h1=100,h2=100;
+    let h1 = 100, h2 = 100;
 
     // ===== HIT EFFECT (EMOJI + SHAKE) =====
-    function hitFX(x,y){
-        const e=document.createElement("div");
-        e.innerText=["💥","👊","⚡"][Math.floor(Math.random()*3)];
-        e.style=`
+    function hitFX(x, y) {
+        const e = document.createElement("div");
+        e.innerText = ["💥", "👊", "⚡"][Math.floor(Math.random() * 3)];
+        e.style = `
             position:fixed;
             left:${x}px;
             top:${y}px;
@@ -817,15 +952,15 @@ function startScene() {
         `;
 
         document.body.appendChild(e);
-        setTimeout(()=>e.remove(),600);
+        setTimeout(() => e.remove(), 600);
 
-        document.body.style.transform="translate(5px,0)";
-        setTimeout(()=>document.body.style.transform="translate(0,0)",80);
+        document.body.style.transform = "translate(5px,0)";
+        setTimeout(() => document.body.style.transform = "translate(0,0)", 80);
     }
 
     // ===== STYLE ANIMATION =====
-    const style=document.createElement("style");
-    style.innerHTML=`
+    const style = document.createElement("style");
+    style.innerHTML = `
     @keyframes pop{
         0%{transform:scale(0.5);opacity:1}
         100%{transform:scale(1.5);opacity:0}
@@ -833,17 +968,17 @@ function startScene() {
     document.head.appendChild(style);
 
     // ===== CHARACTER =====
-    function create(name,color,x,img){
+    function create(name, color, x, img) {
 
-        const el=document.createElement("div");
-        el.style=`
+        const el = document.createElement("div");
+        el.style = `
             display:flex;
             flex-direction:column;
             align-items:center;
             transition:0.2s;
         `;
 
-        el.innerHTML=`
+        el.innerHTML = `
             <img src="${img}" style="
                 width:70px;height:70px;
                 border-radius:50%;
@@ -866,216 +1001,74 @@ function startScene() {
         return el;
     }
 
-    const marhub=create("MARHUB","#7ec8ff","https://i.pravatar.cc/100?img=12");
-    const matix=create("MATIX","#ff6b6b","https://i.pravatar.cc/100?img=32");
+    const marhub = create("MARHUB", "#7ec8ff", "https://i.pravatar.cc/100?img=12");
+    const matix = create("MATIX", "#ff6b6b", "https://i.pravatar.cc/100?img=32");
 
     // ===== STORY =====
-    setTimeout(()=>say("DWÓCH PARTNERÓW"),1000);
-    setTimeout(()=>say("JEDNA ZDRADA"),3500);
+    setTimeout(() => say("DWÓCH PARTNERÓW"), 1000);
+    setTimeout(() => say("JEDNA ZDRADA"), 3500);
 
-    setTimeout(()=>talk("To nie musiało tak się skończyć."));
-    setTimeout(()=>talk("Ale się skończyło."));
+    setTimeout(() => talk("To nie musiało tak się skończyć."));
+    setTimeout(() => talk("Ale się skończyło."));
 
     // ===== POSITION FIX (BLISKO SIEBIE) =====
-    setTimeout(()=>{
-        marhub.style.transform="translateX(-120px)";
-        matix.style.transform="translateX(120px)";
-    },8000);
+    setTimeout(() => {
+        marhub.style.transform = "translateX(-120px)";
+        matix.style.transform = "translateX(120px)";
+    }, 8000);
 
     // ===== FIGHT =====
-    setTimeout(()=>{
+    setTimeout(() => {
 
         say("WALKA");
 
-        const fight=setInterval(()=>{
+        const fight = setInterval(() => {
 
-            const hit=Math.random()>0.5?1:2;
-            const dmg=Math.floor(Math.random()*10)+6;
+            const hit = Math.random() > 0.5 ? 1 : 2;
+            const dmg = Math.floor(Math.random() * 10) + 6;
 
-            if(hit===1){
+            if (hit === 1) {
 
                 // step-in attack
-                marhub.style.transform="translateX(-40px) scale(1.05)";
-                setTimeout(()=>marhub.style.transform="translateX(-120px)",120);
+                marhub.style.transform = "translateX(-40px) scale(1.05)";
+                setTimeout(() => marhub.style.transform = "translateX(-120px)", 120);
 
-                h2-=dmg;
-                hp2.style.width=h2+"%";
+                h2 -= dmg;
+                hp2.style.width = h2 + "%";
 
-                hitFX(window.innerWidth/2,window.innerHeight/2);
+                hitFX(window.innerWidth / 2, window.innerHeight / 2);
                 talk("MARHUB atakuje 👊");
 
-            }else{
+            } else {
 
-                matix.style.transform="translateX(40px) scale(1.05)";
-                setTimeout(()=>matix.style.transform="translateX(120px)",120);
+                matix.style.transform = "translateX(40px) scale(1.05)";
+                setTimeout(() => matix.style.transform = "translateX(120px)", 120);
 
-                h1-=dmg;
-                hp1.style.width=h1+"%";
+                h1 -= dmg;
+                hp1.style.width = h1 + "%";
 
-                hitFX(window.innerWidth/2,window.innerHeight/2);
+                hitFX(window.innerWidth / 2, window.innerHeight / 2);
                 talk("MATIX kontruje ⚡");
             }
 
-            if(h1<=0||h2<=0){
+            if (h1 <= 0 || h2 <= 0) {
                 clearInterval(fight);
                 finish();
             }
 
-        },900);
+        }, 900);
 
-    },10000);
+    }, 10000);
 
-    function finish(){
+    function finish() {
 
-        if(h1<=0) say("MATIX WYGRYWA");
+        if (h1 <= 0) say("MATIX WYGRYWA");
         else say("MARHUB WYGRYWA");
 
         talk("…cisza po walce.");
     }
 }
 
-const easterEggs = [
-    {
-        trigger: "par",
-        action: () => {
-            startScene();
-        }
-    },
-    {
-        trigger: "matrix",
-        action: () => {
-            document.body.style.filter = "hue-rotate(90deg)";
-        }
-    },
-
-    {
-        trigger: "flip",
-        action: () => {
-            document.body.style.transform = "rotate(180deg)";
-        }
-    },
-
-    {
-        trigger: "rainbow",
-        action: () => {
-            let i = 0;
-            setInterval(() => {
-                document.body.style.filter = `hue-rotate(${i++}deg)`;
-            }, 50);
-        }
-    },
-
-    {
-        trigger: "lag",
-        action: () => {
-            setInterval(() => {
-                document.body.style.transform = `translate(${Math.random() * 10}px, ${Math.random() * 10}px)`;
-            }, 100);
-        }
-    },
-
-    {
-        trigger: "clean",
-        action: () => {
-            location.reload();
-        }
-    },
-
-    {
-        trigger: "druk",
-        action: () => {
-            document.body.style.filter = "grayscale(1)";
-        }
-    },
-
-    {
-        trigger: "retro",
-        action: () => {
-            document.body.style.fontFamily = "monospace";
-        }
-    },
-
-    {
-        trigger: "boom",
-        action: () => {
-            document.querySelectorAll("*").forEach(el => {
-                el.style.transform = `rotate(${Math.random() * 360}deg)`;
-            });
-        }
-    },
-
-    {
-        trigger: "cam",
-        action: () => {
-            const cam = document.createElement("div");
-
-            cam.style.position = "fixed";
-            cam.style.top = "10px";
-            cam.style.right = "10px";
-            cam.style.color = "lime";
-            cam.style.fontFamily = "monospace";
-
-            setInterval(() => {
-                cam.innerText = "REC " + new Date().toLocaleTimeString();
-            }, 1000);
-
-            document.body.appendChild(cam);
-        }
-    },
-
-    {
-        trigger: "ai",
-        action: () => {
-            document.body.innerHTML = "<h1 style='color:red;text-align:center;'>SYSTEM PRZEJĘTY</h1>";
-        }
-    },
-
-    {
-        trigger: "break",
-        action: () => {
-            document.querySelectorAll("*").forEach(el => {
-                el.style.transform = `translate(${Math.random() * 50}px, ${Math.random() * 50}px) rotate(${Math.random() * 20}deg)`;
-            });
-        }
-    },
-
-    {
-        trigger: "scan",
-        action: () => {
-            let percent = 0;
-
-            const scan = document.createElement("div");
-            scan.style = "position:fixed;bottom:10px;left:10px;color:white;background:#111;padding:10px";
-
-            document.body.appendChild(scan);
-
-            const interval = setInterval(() => {
-                percent += 10;
-                scan.innerText = "Skanowanie danych... " + percent + "%";
-
-                if (percent >= 100) {
-                    clearInterval(interval);
-                    scan.innerText = "Zakończono ✔";
-                }
-            }, 200);
-        }
-    }
-];
-
-let lastTrigger = "";
-
-nick.addEventListener("input", () => {
-    const value = nick.value.toLowerCase();
-
-    if (value === lastTrigger) return;
-
-    easterEggs.forEach(egg => {
-        if (value === egg.trigger) {
-            egg.action();
-            lastTrigger = value;
-        }
-    });
-});
 
 let corners = [];
 const target = ["TL", "BR", "BL", "TR"];
@@ -1108,4 +1101,140 @@ document.addEventListener("click", (e) => {
         document.body.style.transform = "rotate(2deg)";
         corners = [];
     }
+});
+
+function format(ms) {
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function save() {
+    const data = {
+        startTime: startTime,
+        running: running
+    };
+
+    console.log("💾 SAVE TIMER:", data);
+
+    localStorage.setItem("timerData", JSON.stringify(data));
+}
+
+function load() {
+    const raw = localStorage.getItem("timerData");
+
+    console.log("📦 RAW FROM STORAGE:", raw);
+
+    if (!raw) {
+        console.log("❌ brak danych w localStorage");
+        return;
+    }
+
+    const data = JSON.parse(raw);
+
+    console.log("📥 PARSED DATA:", data);
+
+    startTime = data.startTime ? Number(data.startTime) : null;
+    running = data.running || false;
+
+    console.log("▶️ AFTER ASSIGN:", { startTime, running });
+
+    if (running && startTime) {
+        console.log("🚀 START TIMER AFTER REFRESH");
+        startInterval();
+    } else {
+        console.log("⛔ timer nie rusza (running/startTime fail)");
+    }
+
+    update();
+}
+
+function startInterval() {
+    clearInterval(interval);
+
+    console.log("⏱️ INTERVAL STARTED");
+
+    interval = setInterval(() => {
+        elapsed = Date.now() - startTime;
+
+        console.log("⏳ TICK:", elapsed);
+
+        save();
+        update();
+    }, 1000);
+}
+
+function update() {
+    if (startTime) {
+        elapsed = Date.now() - startTime;
+    }
+    display.innerText = format(elapsed);
+}
+
+function startTimer() {
+    if (running) return;
+
+    startTime = Date.now() - elapsed;
+    running = true;
+
+    console.log("🟢 START TIMER:", { startTime });
+
+    clearInterval(interval);
+    startInterval();
+
+    save();
+}
+
+function pauseTimer() {
+    if (!running) return;
+
+    clearInterval(interval);
+    elapsed = Date.now() - startTime;
+    running = false;
+
+    save();
+}
+
+function stopTimer() {
+    clearInterval(interval);
+    startTime = null;
+    elapsed = 0;
+    running = false;
+
+    update();
+    save();
+}
+
+/*document.getElementById("timePanelBtn").onclick = () => {
+    const panel = document.getElementById("timePanel");
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+};*/
+
+load();
+
+function toggleTimerPanel() {
+    alert("Funkcja tymczasowo wyłączona!");
+    //document.getElementById("timerPanel").classList.toggle("show");
+}
+
+document.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", e => {
+        const ripple = document.createElement("span");
+        ripple.style.position = "absolute";
+        ripple.style.borderRadius = "50%";
+        ripple.style.transform = "scale(0)";
+        ripple.style.background = "rgba(255,255,255,0.4)";
+        ripple.style.width = ripple.style.height = "100px";
+        ripple.style.left = e.offsetX - 50 + "px";
+        ripple.style.top = e.offsetY - 50 + "px";
+        ripple.style.animation = "ripple 0.6s linear";
+        ripple.style.pointerEvents = "none";
+
+        btn.style.position = "relative";
+        btn.style.overflow = "hidden";
+        btn.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 600);
+    });
 });

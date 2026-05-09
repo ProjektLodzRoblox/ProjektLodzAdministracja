@@ -12,6 +12,22 @@
 <body>
 
   <div class="container">
+    <h2>🚨 Generator raportu</h2>
+
+    <div id="loadingModal">
+      <div class="loadingBox">
+        <div id="loadingIcon" class="spinner"></div>
+        <div class="loadingText">Generowanie raportu...</div>
+      </div>
+    </div>
+
+    <div class="custom-select" id="trybSelect">
+      <div class="select-selected">Wybierz typ szablonu</div>
+      <div class="select-options">
+        <div class="select-option" data-value="moderator">Moderatorzy i wyżej</div>
+        <div class="select-option" data-value="support">Supporci</div>
+      </div>
+    </div>
 
     <div class="grid">
       <div id="maintenance" style="
@@ -30,9 +46,9 @@ flex-direction:column;
 font-size:22px;
 text-align:center;
 ">
-        <h1>🎉 Wielki start strony!</h1>
-        <h1>Start strony dla administracji Projektu Łódź!</h1>
-        <p>Strona startuje za:</p>
+        <h1>🚧 Przerwa techniczna. Trwa przebudowa strony!</h1>
+        <h1>Na ten czas proszę o ręczne wypisywanie raportów na kanale discord!</h1>
+        <p>Strona wróci za:</p>
         <h2 id="timer"></h2>
       </div>
       <div id="signatureModal" style="
@@ -50,14 +66,105 @@ flex-direction:column;
         <div
           style="background:#111827;padding:20px;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:12px;">
 
+          <h3 id="signatureTitle" style="color:white;text-align:center;margin:0;">
+            Proszę się podpisać (Parafka lub Imię i Nazwisko)
+          </h3>
+
+          <div class="sigTabs">
+            <div class="sigTab active" onclick="setSignatureMode('draw', this)">✍️ Własny</div>
+            <div class="sigTab" onclick="setSignatureMode('text', this)">🔤 Uproszczony</div>
+          </div>
+
+          <canvas id="signatureCanvas" width="400" height="150"
+            style="background:#26324d;border-radius:8px;display:block;">
+          </canvas>
+
+          <div class="sigActions">
+            <button class="clear" onclick="clearSignature()">Wyczyść</button>
+            <button class="save" onclick="saveSignature()">Zapisz</button>
+            <button id="loadSignatureBtn" class="load" onclick="loadSavedSignature()" style="display:none;">
+              Wczytaj ostatni podpis
+            </button>
+          </div>
 
         </div>
 
+      </div>
+      <div id="fields-support" class="fields">
+        <input id="nick" placeholder="Nick">
+        <input id="godzina-wejscia" placeholder="Godzina wejścia">
+        <input id="godzina-wyjscia" placeholder="Godzina wyjścia">
+        <input id="data-sluzby" placeholder="Data kiedy pełniłeś służbę">
+        <input id="co-robiono" placeholder="Co robiłeś podczas służby?">
+        <input id="ilosc-zgloszonych" placeholder="Ilość zgłoszonych graczy na służbie">
+        <input id="ilosc-tickety-vc" placeholder="Ilość odpowiedzianych ticketów/vc pomocy">
+        <input id="ilosc-przerw" placeholder="Ilość przerw">
+        <input id="numerek" placeholder="Numerek">
+        <input id="dowod" placeholder="Dowód bądź osoba potwierdzająca">
+      </div>
+      <div id="fields-moderator" class="fields">
+        <input id="nick2" placeholder="Nick">
+        <input id="data-sluzby" placeholder="Data służby">
+        <input id="wejscie" placeholder="Godzina wejścia">
+        <input id="wyjscie" placeholder="Godzina wyjścia">
+        <input id="co-robiono" placeholder="Co robiłeś">
+        <input id="ilosc-zgloszonych" placeholder="Ilość zgłoszonych graczy">
+        <input id="ilosc-tickety-vc" placeholder="Tickety / VC pomoc">
+        <input id="ilosc-przerw" placeholder="Ilość przerw">
+        <input id="bany" placeholder="Wystawione bany">
+        <input id="kicki" placeholder="Wystawione kicki">
+        <input id="numerek" placeholder="Numerek">
+        <input id="dowod" placeholder="Dowód bądź osoba potwierdzająca">
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="generate" onclick="startRaport()">Generuj raport</button>
+    </div>
+
+    <canvas id="canvas" style="display: none;"></canvas>
   </div>
 
+  <footer class="footer">
+    <div class="footer-center">
+      <a href="https://discord.gg/JvZU3XTusK" target="_blank">© <span id="year"></span> Projekt Łódź</a>
+    </div>
+  </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
+
+  <div id="timerPanel">
+    <h3>Czas służby</h3>
+
+    <div id="timeDisplay">00:00:00</div>
+
+    <button onclick="startTimer()">Start</button>
+    <button onclick="pauseTimer()">Pauza</button>
+    <button onclick="addBreak()">Przerwa</button>
+    <button onclick="resetTimer()">Stop</button>
   </div>
+
+  <div id="changelogModal" class="modal">
+    <div class="changelogBox">
+
+      <div class="closeBtn" onclick="closeChangelog()">✖</div>
+
+      <div id="versionList" class="versionList"></div>
+
+      <div class="versionContentBox">
+        <h3 id="versionTitle">Wybierz wersję</h3>
+        <div id="versionContent"></div>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+
+  </div>
+
+  <div id="changelogBtn" onclick="openChangelog()">📜 <span id="newDot"></span></div>
+  <div id="timerBtn" onclick="toggleTimerPanel()">⏱</div>
 </body>
 
 </html>
