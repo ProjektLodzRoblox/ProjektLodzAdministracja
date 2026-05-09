@@ -32,7 +32,6 @@ const reportTemplates = {
                     ["Zgłoszeni gracze", "ilosc-zgloszonych"],
                     ["Ticket/VC pomoc", "ilosc-tickety-vc"],
                     ["Przerwy", "ilosc-przerw"],
-                    ["Numerek", "numerek"],
                     ["Dowód", "dowod"]
                 ]
             }
@@ -55,7 +54,6 @@ const reportTemplates = {
                     ["Godzina wyjścia", "wyjscie"],
 
                     ["Data", "data-sluzby"],
-                    ["Numerek", "numerek"],
 
                     ["Przerwy", "ilosc-przerw"],
 
