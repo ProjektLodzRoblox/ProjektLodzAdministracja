@@ -4,9 +4,9 @@ const changelog = [
         date: "28.04.2026",
         isNew: true,
         changes: {
-            added: ["Dodano opcje ręcznego oraz urposzczonego podpisu", "Dodano dziennik zmian", "Dodano przycisk od wczytania ostatniego swojego podpisu",],
+            added: ["Wydanie strony"],
             fixed: ["Brak"],
-            changed: ["Poprawiono lekko style przycisków"]
+            changed: ["Brak"]
         }
     }
 ];
